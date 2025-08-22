@@ -1,35 +1,50 @@
-// キャッシュの名前を定義
-const CACHE_NAME = 'shopping-checklist-v1';
-// キャッシュするファイルのリスト
+// キャッシュするファイルの名前とバージョンを定義
+const CACHE_NAME = 'korekau-cache-v1';
 const urlsToCache = [
-  './',
-  './index.html',
-  './manifest.json',
-  'https://cdn.tailwindcss.com' // Tailwind CSSもキャッシュ
+  '/',
+  '/index.html' 
+  // CSSや他のJSファイル、画像などを追加する場合はここにも追記します
 ];
 
 // Service Workerのインストールイベント
-self.addEventListener('install', event => {
+self.addEventListener('install', (event) => {
   // インストール処理
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => {
+      .then((cache) => {
         console.log('Opened cache');
         return cache.addAll(urlsToCache);
       })
   );
 });
 
-// Service Workerのフェッチイベント
-self.addEventListener('fetch', event => {
+// Service Workerの有効化イベント
+self.addEventListener('activate', (event) => {
+  const cacheWhitelist = [CACHE_NAME];
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheWhitelist.indexOf(cacheName) === -1) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+});
+
+
+// ファイルへのリクエストがあったときのイベント
+self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request)
-      .then(response => {
-        // キャッシュにヒットした場合、それを返す
+      .then((response) => {
+        // キャッシュにファイルがあればそれを返す
         if (response) {
           return response;
         }
-        // キャッシュになかった場合、ネットワークから取得
+        // なければネットワークから取得する
         return fetch(event.request);
       }
     )
