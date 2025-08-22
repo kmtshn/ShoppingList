@@ -1,6 +1,6 @@
 {
-  "name": "コレカウ",
-  "short_name": "コレカウ",
+  "name": "メモリス",
+  "short_name": "メモリス",
   "description": "シンプルな買い物チェックリストアプリです。",
   "start_url": ".",
   "display": "standalone",
