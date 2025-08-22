@@ -8,12 +8,17 @@
     <meta name="theme-color" content="#3b82f6"/>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         /* 日本語フォントと英語フォントのフォールバック設定 */
         body {
             font-family: 'Inter', 'Noto Sans JP', sans-serif;
+        }
+        /* インストールボタンが他の要素に隠れないようにz-indexを設定 */
+        #install-container {
+            z-index: 1000;
         }
     </style>
 </head>
@@ -26,6 +31,7 @@
         </header>
 
         <main>
+            <!-- メモ入力ビュー -->
             <div id="memo-view">
                 <div class="bg-white rounded-2xl shadow-lg p-2">
                     <textarea 
@@ -40,9 +46,11 @@
                 </div>
             </div>
 
+            <!-- チェックリストビュー -->
             <div id="checklist-view" class="hidden">
                 <div id="checklist-container" class="bg-white rounded-2xl shadow-lg p-6 space-y-2">
-                    </div>
+                    <!-- チェックリスト項目はここに動的に追加されます -->
+                </div>
                 <div class="text-center mt-8">
                     <button id="switch-to-memo-btn" class="bg-slate-500 hover:bg-slate-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-slate-300">
                         メモに戻る
@@ -51,6 +59,18 @@
             </div>
         </main>
     </div>
+
+    <!-- ▼▼▼ インストールボタンのHTMLを追加 ▼▼▼ -->
+    <div id="install-container" class="fixed bottom-4 right-4 hidden">
+        <button id="install-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-full shadow-lg flex items-center transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-300">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            アプリをインストール
+        </button>
+    </div>
+    <!-- ▲▲▲ ココまでを追加 ▲▲▲ -->
+
 
     <script>
         // --- Service Workerの登録 ---
@@ -64,7 +84,43 @@
             });
         }
 
-        // --- 要素の取得 ---
+        // --- ▼▼▼ インストールボタンのロジックを追加 ▼▼▼ ---
+        const installContainer = document.getElementById('install-container');
+        const installBtn = document.getElementById('install-btn');
+        let deferredPrompt;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // ブラウザのデフォルトのインストールプロンプトを無効化
+            e.preventDefault();
+            // イベントを後で使うために保存
+            deferredPrompt = e;
+            // インストールボタンを表示
+            installContainer.classList.remove('hidden');
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                // インストールプロンプトを表示
+                deferredPrompt.prompt();
+                // ユーザーの選択結果を待つ
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to the install prompt: ${outcome}`);
+                // 一度しか使えないので、プロンプトをクリア
+                deferredPrompt = null;
+                // ボタンを非表示にする
+                installContainer.classList.add('hidden');
+            }
+        });
+
+        window.addEventListener('appinstalled', () => {
+            // アプリがインストールされたら、プロンプトをクリア
+            deferredPrompt = null;
+            console.log('PWA was installed');
+        });
+        // --- ▲▲▲ ココまでを追加 ▲▲▲ ---
+
+
+        // --- (ここから下は元々あったアプリのコード) ---
         const memoView = document.getElementById('memo-view');
         const checklistView = document.getElementById('checklist-view');
         const memoInput = document.getElementById('memo-input');
@@ -72,7 +128,6 @@
         const switchToChecklistBtn = document.getElementById('switch-to-checklist-btn');
         const switchToMemoBtn = document.getElementById('switch-to-memo-btn');
 
-        // --- イベントリスナーの設定 ---
         switchToChecklistBtn.addEventListener('click', () => {
             const text = memoInput.value.trim();
             if (!text) {
@@ -91,7 +146,6 @@
             memoView.classList.remove('hidden');
         });
 
-        // --- 関数の定義 ---
         function generateChecklist(items) {
             checklistContainer.innerHTML = '';
             items.forEach((itemText, index) => {
@@ -115,5 +169,5 @@
             });
         }
     </script>
-    </body>
+</body>
 </html>
