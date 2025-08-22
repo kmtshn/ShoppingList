@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>メモリス - 買い物チェックリスト</title>
+
+    <meta name="theme-color" content="#3b82f6"/>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
@@ -22,7 +26,6 @@
         </header>
 
         <main>
-            <!-- メモ入力ビュー -->
             <div id="memo-view">
                 <div class="bg-white rounded-2xl shadow-lg p-2">
                     <textarea 
@@ -37,11 +40,9 @@
                 </div>
             </div>
 
-            <!-- チェックリストビュー -->
             <div id="checklist-view" class="hidden">
                 <div id="checklist-container" class="bg-white rounded-2xl shadow-lg p-6 space-y-2">
-                    <!-- チェックリスト項目はここに動的に追加されます -->
-                </div>
+                    </div>
                 <div class="text-center mt-8">
                     <button id="switch-to-memo-btn" class="bg-slate-500 hover:bg-slate-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-slate-300">
                         メモに戻る
@@ -52,6 +53,17 @@
     </div>
 
     <script>
+        // --- Service Workerの登録 ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js').then(registration => {
+                    console.log('ServiceWorker registration successful');
+                }, err => {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
+
         // --- 要素の取得 ---
         const memoView = document.getElementById('memo-view');
         const checklistView = document.getElementById('checklist-view');
@@ -61,75 +73,47 @@
         const switchToMemoBtn = document.getElementById('switch-to-memo-btn');
 
         // --- イベントリスナーの設定 ---
-
-        /**
-         * 「チェックリストに切り替え」ボタンがクリックされたときの処理
-         */
         switchToChecklistBtn.addEventListener('click', () => {
             const text = memoInput.value.trim();
-            // テキストが空の場合は何もしない
             if (!text) {
-                // ユーザーにフィードバックを与える（任意）
                 memoInput.classList.add('animate-pulse');
                 setTimeout(() => memoInput.classList.remove('animate-pulse'), 1000);
                 return;
             }
-
-            // テキストを行ごとに分割し、空行を除外して配列にする
             const items = text.split('\n').filter(line => line.trim() !== '');
-            
-            // チェックリストを生成
             generateChecklist(items);
-
-            // ビューを切り替え
             memoView.classList.add('hidden');
             checklistView.classList.remove('hidden');
         });
 
-        /**
-         * 「メモに戻る」ボタンがクリックされたときの処理
-         */
         switchToMemoBtn.addEventListener('click', () => {
-            // ビューを切り替え
             checklistView.classList.add('hidden');
             memoView.classList.remove('hidden');
         });
 
-        /**
-         * テキスト配列からチェックリストのHTMLを生成して表示する関数
-         * @param {string[]} items - チェックリストの項目配列
-         */
+        // --- 関数の定義 ---
         function generateChecklist(items) {
-            // コンテナをクリア
             checklistContainer.innerHTML = '';
-
-            // 各項目に対してチェックリスト要素を作成
             items.forEach((itemText, index) => {
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'flex items-center bg-slate-50 p-3 rounded-lg';
-
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
                 checkbox.id = `item-${index}`;
                 checkbox.className = 'h-5 w-5 rounded border-slate-300 text-blue-500 focus:ring-blue-400';
-                
                 const label = document.createElement('label');
                 label.htmlFor = `item-${index}`;
                 label.textContent = itemText;
                 label.className = 'ml-3 text-slate-700';
-
-                // チェックされたら打ち消し線を追加
                 checkbox.addEventListener('change', () => {
                     label.classList.toggle('line-through', checkbox.checked);
                     label.classList.toggle('text-slate-400', checkbox.checked);
                 });
-
                 itemDiv.appendChild(checkbox);
                 itemDiv.appendChild(label);
                 checklistContainer.appendChild(itemDiv);
             });
         }
     </script>
-
-</body>
+    </body>
 </html>
