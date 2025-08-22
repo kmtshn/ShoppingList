@@ -12,13 +12,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* 日本語フォントと英語フォントのフォールバック設定 */
         body {
             font-family: 'Inter', 'Noto Sans JP', sans-serif;
-        }
-        /* インストールボタンが他の要素に隠れないようにz-indexを設定 */
-        #install-container {
-            z-index: 1000;
         }
     </style>
 </head>
@@ -31,7 +26,6 @@
         </header>
 
         <main>
-            <!-- メモ入力ビュー -->
             <div id="memo-view">
                 <div class="bg-white rounded-2xl shadow-lg p-2">
                     <textarea 
@@ -46,11 +40,9 @@
                 </div>
             </div>
 
-            <!-- チェックリストビュー -->
             <div id="checklist-view" class="hidden">
                 <div id="checklist-container" class="bg-white rounded-2xl shadow-lg p-6 space-y-2">
-                    <!-- チェックリスト項目はここに動的に追加されます -->
-                </div>
+                    </div>
                 <div class="text-center mt-8">
                     <button id="switch-to-memo-btn" class="bg-slate-500 hover:bg-slate-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-slate-300">
                         メモに戻る
@@ -60,7 +52,6 @@
         </main>
     </div>
 
-    <!-- ▼▼▼ インストールボタンのHTMLを追加 ▼▼▼ -->
     <div id="install-container" class="fixed bottom-4 right-4 hidden">
         <button id="install-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-full shadow-lg flex items-center transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-300">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -69,9 +60,6 @@
             アプリをインストール
         </button>
     </div>
-    <!-- ▲▲▲ ココまでを追加 ▲▲▲ -->
-
-
     <script>
         // --- Service Workerの登録 ---
         if ('serviceWorker' in navigator) {
