@@ -1,9 +1,12 @@
 // キャッシュするファイルの名前とバージョンを定義
-const CACHE_NAME = 'korekau-cache-v1';
+const CACHE_NAME = 'memoris-cache-v1'; // アプリ名に合わせてキャッシュ名を変更
 const urlsToCache = [
-  '/',
-  '/index.html' 
-  // CSSや他のJSファイル、画像などを追加する場合はここにも追記します
+  './', // ルートパスを相対パスに変更
+  './index.html', // index.htmlも相対パスに変更
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png'
+  // 必要に応じて他のファイルもキャッシュリストに追加できます
 ];
 
 // Service Workerのインストールイベント
@@ -26,6 +29,7 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheWhitelist.indexOf(cacheName) === -1) {
+            // 古いキャッシュを削除
             return caches.delete(cacheName);
           }
         })
