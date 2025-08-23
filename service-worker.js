@@ -1,5 +1,5 @@
 // ▼▼▼ ここのバージョン番号を v1 から v2 に変更 ▼▼▼
-const CACHE_NAME = 'memoris-cache-v2';
+const CACHE_NAME = 'memoris-cache-v3';
 // ▲▲▲ これだけでOK ▲▲▲
 
 const urlsToCache = [
