@@ -12,8 +12,16 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+        body { font-family: 'Inter', 'Noto Sans JP', sans-serif; }
+        #install-container { z-index: 1000; }
+        /* マイクボタンのアニメーション */
+        .recording {
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
         }
     </style>
 </head>
@@ -26,12 +34,19 @@
         </header>
 
         <main>
+            <!-- メモ入力ビュー -->
             <div id="memo-view">
-                <div class="bg-white rounded-2xl shadow-lg p-2">
+                <div class="bg-white rounded-2xl shadow-lg p-2 relative">
                     <textarea 
                         id="memo-input"
                         class="w-full h-64 p-4 border-none resize-none focus:ring-0 text-slate-700 placeholder-slate-400 bg-transparent"
                         placeholder="ここに買うものを入力してね&#10;たまご&#10;牛乳&#10;パン&#10;等"></textarea>
+                    
+                    <button id="mic-btn" class="absolute bottom-4 right-4 bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition-transform transform hover:scale-110 focus:outline-none hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                        </svg>
+                    </button>
                 </div>
                 <div class="text-center mt-8">
                     <button id="switch-to-checklist-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300">
@@ -40,9 +55,9 @@
                 </div>
             </div>
 
+            <!-- (チェックリストビューは変更なし) -->
             <div id="checklist-view" class="hidden">
-                <div id="checklist-container" class="bg-white rounded-2xl shadow-lg p-6 space-y-2">
-                    </div>
+                <div id="checklist-container" class="bg-white rounded-2xl shadow-lg p-6 space-y-2"></div>
                 <div class="text-center mt-8">
                     <button id="switch-to-memo-btn" class="bg-slate-500 hover:bg-slate-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-slate-300">
                         メモに戻る
@@ -52,14 +67,14 @@
         </main>
     </div>
 
+    <!-- (インストールボタンは変更なし) -->
     <div id="install-container" class="fixed bottom-4 right-4 hidden">
         <button id="install-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-full shadow-lg flex items-center transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-300">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
             アプリをインストール
         </button>
     </div>
+
     <script>
         // --- Service Workerの登録 ---
         if ('serviceWorker' in navigator) {
@@ -72,50 +87,87 @@
             });
         }
 
-        // --- ▼▼▼ インストールボタンのロジックを追加 ▼▼▼ ---
+        // --- インストールボタンのロジック ---
         const installContainer = document.getElementById('install-container');
         const installBtn = document.getElementById('install-btn');
         let deferredPrompt;
-
         window.addEventListener('beforeinstallprompt', (e) => {
-            // ブラウザのデフォルトのインストールプロンプトを無効化
             e.preventDefault();
-            // イベントを後で使うために保存
             deferredPrompt = e;
-            // インストールボタンを表示
             installContainer.classList.remove('hidden');
         });
-
         installBtn.addEventListener('click', async () => {
             if (deferredPrompt) {
-                // インストールプロンプトを表示
                 deferredPrompt.prompt();
-                // ユーザーの選択結果を待つ
                 const { outcome } = await deferredPrompt.userChoice;
                 console.log(`User response to the install prompt: ${outcome}`);
-                // 一度しか使えないので、プロンプトをクリア
                 deferredPrompt = null;
-                // ボタンを非表示にする
                 installContainer.classList.add('hidden');
             }
         });
-
         window.addEventListener('appinstalled', () => {
-            // アプリがインストールされたら、プロンプトをクリア
             deferredPrompt = null;
             console.log('PWA was installed');
         });
-        // --- ▲▲▲ ココまでを追加 ▲▲▲ ---
 
+        // --- 音声入力のロジック ---
+        const micBtn = document.getElementById('mic-btn');
+        const memoInput = document.getElementById('memo-input');
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            micBtn.classList.remove('hidden');
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'ja-JP';
+            recognition.interimResults = false;
+            recognition.continuous = false;
+
+            micBtn.addEventListener('click', () => {
+                if (!micBtn.classList.contains('recording')) {
+                    recognition.start();
+                } else {
+                    recognition.stop();
+                }
+            });
+
+            recognition.onstart = () => {
+                micBtn.classList.add('recording', 'bg-red-500', 'hover:bg-red-600');
+            };
+
+            recognition.onend = () => {
+                micBtn.classList.remove('recording', 'bg-red-500', 'hover:bg-red-600');
+            };
+
+            // ▼▼▼ ここを修正 ▼▼▼
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                
+                // 「と」で文字列を分割して配列にする
+                const items = transcript.split('と').map(item => item.trim()).filter(item => item);
+
+                // 分割された各項目を改行して追記する
+                const newText = items.join('\n');
+                
+                // 既存のテキストの末尾に改行して追記
+                memoInput.value += (memoInput.value ? '\n' : '') + newText;
+            };
+            // ▲▲▲ ココまでを修正 ▲▲▲
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error detected: ' + event.error);
+                alert('音声認識でエラーが発生しました。マイクの許可を確認してください。');
+            };
+
+        } else {
+            console.log('Web Speech API is not supported in this browser.');
+        }
 
         // --- (ここから下は元々あったアプリのコード) ---
         const memoView = document.getElementById('memo-view');
         const checklistView = document.getElementById('checklist-view');
-        const memoInput = document.getElementById('memo-input');
         const checklistContainer = document.getElementById('checklist-container');
         const switchToChecklistBtn = document.getElementById('switch-to-checklist-btn');
         const switchToMemoBtn = document.getElementById('switch-to-memo-btn');
-
+        
         switchToChecklistBtn.addEventListener('click', () => {
             const text = memoInput.value.trim();
             if (!text) {
