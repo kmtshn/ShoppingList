@@ -1,17 +1,17 @@
-// キャッシュするファイルの名前とバージョンを定義
-const CACHE_NAME = 'memoris-cache-v1'; // アプリ名に合わせてキャッシュ名を変更
+// ▼▼▼ ここのバージョン番号を v1 から v2 に変更 ▼▼▼
+const CACHE_NAME = 'memoris-cache-v2';
+// ▲▲▲ これだけでOK ▲▲▲
+
 const urlsToCache = [
-  './', // ルートパスを相対パスに変更
-  './index.html', // index.htmlも相対パスに変更
+  './',
+  './index.html',
   './manifest.json',
   './icon-192.png',
   './icon-512.png'
-  // 必要に応じて他のファイルもキャッシュリストに追加できます
 ];
 
 // Service Workerのインストールイベント
 self.addEventListener('install', (event) => {
-  // インストール処理
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
@@ -28,8 +28,8 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
+          // ホワイトリストにない古いキャッシュ(v1)を削除
           if (cacheWhitelist.indexOf(cacheName) === -1) {
-            // 古いキャッシュを削除
             return caches.delete(cacheName);
           }
         })
@@ -38,17 +38,14 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-
 // ファイルへのリクエストがあったときのイベント
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
-        // キャッシュにファイルがあればそれを返す
         if (response) {
           return response;
         }
-        // なければネットワークから取得する
         return fetch(event.request);
       }
     )
