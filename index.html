@@ -28,10 +28,15 @@
 <body class="bg-slate-50 flex items-center justify-center min-h-screen">
 
     <div class="w-full max-w-md mx-auto p-4">
+        <!-- ▼▼▼ headerタグの中身を修正 ▼▼▼ -->
         <header class="text-center mb-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-slate-800">メモリス</h1>
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-800 flex items-center justify-center gap-2">
+                <span>メモリス</span>
+                <img src="icon-192.png" alt="メモリス アイコン" class="w-10 h-10">
+            </h1>
             <p class="text-slate-500 mt-2">メモを入力し、チェックリストに切り替えて使います。</p>
         </header>
+        <!-- ▲▲▲ ココまでを修正 ▲▲▲ -->
 
         <main>
             <!-- メモ入力ビュー -->
@@ -137,20 +142,12 @@
                 micBtn.classList.remove('recording', 'bg-red-500', 'hover:bg-red-600');
             };
 
-            // ▼▼▼ ここを修正 ▼▼▼
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
-                
-                // 「と」で文字列を分割して配列にする
                 const items = transcript.split('と').map(item => item.trim()).filter(item => item);
-
-                // 分割された各項目を改行して追記する
                 const newText = items.join('\n');
-                
-                // 既存のテキストの末尾に改行して追記
                 memoInput.value += (memoInput.value ? '\n' : '') + newText;
             };
-            // ▲▲▲ ココまでを修正 ▲▲▲
 
             recognition.onerror = (event) => {
                 console.error('Speech recognition error detected: ' + event.error);
