@@ -159,6 +159,25 @@
         }
 
         // --- (ここから下は元々あったアプリのコード) ---
+        // 1. アプリ起動時にlocalStorageからデータを読み込む
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedMemo = localStorage.getItem('memoText');
+            if (savedMemo) {
+                memoInput.value = savedMemo;
+            }
+        });
+
+        // 2. テキストエリアに入力があるたびにlocalStorageにデータを保存する
+        memoInput.addEventListener('input', () => {
+            localStorage.setItem('memoText', memoInput.value);
+        });
+
+        // ▲▲▲ ここまで追加 ▲▲▲
+
+        const memoView = document.getElementById('memo-view');
+        const checklistView = document.getElementById('checklist-view');
+        // ... (以下、既存のコードが続く)
+        
         const memoView = document.getElementById('memo-view');
         const checklistView = document.getElementById('checklist-view');
         const checklistContainer = document.getElementById('checklist-container');
