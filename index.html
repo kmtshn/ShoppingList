@@ -39,8 +39,11 @@
         .dark .tab-item:not(.active) + .tab-delete-btn { background-color: #4b5563; }
     </style>
     <script>
-        if (localStorage.getItem('theme') === 'dark' || 
-           (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        // --- [テーマ設定 STEP 1] ページのちらつきを防ぐため、HTMLの描画前にテーマを適用 ---
+        // 1. localStorageに保存されたユーザー設定（'light'または'dark'）を最優先で読み込む
+        // 2. ユーザー設定がなければ、OSのテーマ設定（ダークモードか否か）を読み込む
+        // 3. 読み込んだ設定に応じて、<html>タグに'dark'クラスを付け外しする
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         } else {
             document.documentElement.classList.remove('dark');
@@ -65,9 +68,7 @@
         </header>
 
         <div id="tabs-container" class="mb-4 hidden">
-            <div id="tabs-scroll" class="flex items-center gap-2 overflow-x-auto pb-2">
-                <!-- Tabs will be dynamically inserted here -->
-            </div>
+            <div id="tabs-scroll" class="flex items-center gap-2 overflow-x-auto pb-2"></div>
         </div>
 
         <main>
@@ -79,11 +80,9 @@
                         class="w-full h-64 p-4 border-none resize-none focus:ring-0 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 bg-transparent"
                         placeholder="ここに買うものを入力してね&#10;たまご&#10;牛乳&#10;パン&#10;等"></textarea>
                     
-                    <!-- ▼▼▼ メモクリアボタンを追加 ▼▼▼ -->
                     <button id="clear-memo-btn" class="absolute top-3 right-3 text-slate-400 hover:text-red-500 text-2xl p-2 focus:outline-none">
-                         eraser 
+                         🖌 
                     </button>
-                    <!-- ▲▲▲ ココまでを追加 ▲▲▲ -->
                     
                     <button id="mic-btn" class="absolute bottom-4 right-4 bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition-transform transform hover:scale-110 focus:outline-none hidden">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
@@ -214,12 +213,10 @@
         const tabsContainer = document.getElementById('tabs-container');
         const tabsScroll = document.getElementById('tabs-scroll');
         const multiListToggle = document.getElementById('multi-list-toggle');
-        const clearMemoBtn = document.getElementById('clear-memo-btn'); // メモクリアボタンの要素
+        const clearMemoBtn = document.getElementById('clear-memo-btn');
 
-        // --- App State ---
         let appData = {};
 
-        // --- Data Persistence ---
         function saveData() {
             localStorage.setItem('shoppingListData', JSON.stringify(appData));
         }
@@ -243,11 +240,9 @@
             saveData();
         }
         
-        // --- UI Rendering ---
         function renderUI() {
             multiListToggle.checked = appData.settings.multiListEnabled;
             hideCompletedToggle.checked = appData.settings.hideCompleted;
-            darkModeToggle.checked = document.documentElement.classList.contains('dark');
             tabsContainer.classList.toggle('hidden', !appData.settings.multiListEnabled);
             if (appData.settings.multiListEnabled) {
                 renderTabs();
@@ -301,10 +296,11 @@
             }
         }
 
-        // --- Event Listeners ---
         window.addEventListener('DOMContentLoaded', () => {
             loadData();
             renderUI();
+            // --- [テーマ設定 STEP 2] ページの準備完了後、テーマ関連のイベントを設定 ---
+            initializeTheme();
         });
 
         memoInput.addEventListener('input', updateActiveListData);
@@ -331,7 +327,6 @@
             memoView.classList.remove('hidden');
         });
 
-        // --- List Management ---
         function switchList(listId) {
             appData.activeListId = listId;
             saveData();
@@ -414,7 +409,6 @@
         addItemBtn.addEventListener('click', addNewItem);
         addItemInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addNewItem(); });
 
-        // --- Settings Modal Logic ---
         openSettingsBtn.addEventListener('click', () => settingsModal.classList.remove('hidden'));
         closeSettingsBtn.addEventListener('click', () => settingsModal.classList.add('hidden'));
         settingsModal.addEventListener('click', (e) => { if (e.target === settingsModal) settingsModal.classList.add('hidden'); });
@@ -424,16 +418,25 @@
             saveData();
             renderUI();
         });
+        
+        // --- [テーマ設定 STEP 3] テーマ関連のロジックを一つの関数に集約 ---
+        function initializeTheme() {
+            // 1. 現在の表示モード（darkクラスの有無）に合わせてトグルスイッチの初期状態を設定
+            darkModeToggle.checked = document.documentElement.classList.contains('dark');
 
-        darkModeToggle.addEventListener('change', () => {
-            if (darkModeToggle.checked) {
-                document.documentElement.classList.add('dark');
-                localStorage.setItem('theme', 'dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-                localStorage.setItem('theme', 'light');
-            }
-        });
+            // 2. トグルスイッチが変更されたときの処理を設定
+            darkModeToggle.addEventListener('change', () => {
+                if (darkModeToggle.checked) {
+                    // ONになったら: darkクラスを適用し、設定を'dark'として保存
+                    document.documentElement.classList.add('dark');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    // OFFになったら: darkクラスを削除し、設定を'light'として保存
+                    document.documentElement.classList.remove('dark');
+                    localStorage.setItem('theme', 'light');
+                }
+            });
+        }
 
         function applyHideCompletedFilter() {
             const shouldHide = hideCompletedToggle.checked;
