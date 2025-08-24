@@ -22,17 +22,21 @@
         }
         .toggle-checkbox:checked { right: 0; border-color: #4ade80; }
         .toggle-checkbox:checked + .toggle-label { background-color: #4ade80; }
-        .tab-item { transition: all 0.2s ease-in-out; }
+        .tab-item-group { display: flex; align-items: center; }
+        .tab-item { transition: all 0.2s ease-in-out; border-top-right-radius: 0; border-bottom-right-radius: 0;}
         .tab-item.active {
-            background-color: #3b82f6; /* bg-blue-500 */
+            background-color: #3b82f6;
             color: white;
         }
-        .tab-item:not(.active) {
-            background-color: #e5e7eb; /* bg-gray-200 */
+        .tab-item:not(.active) { background-color: #e5e7eb; }
+        .dark .tab-item:not(.active) { background-color: #4b5563; }
+        .tab-delete-btn {
+            border-top-left-radius: 0; border-bottom-left-radius: 0;
+            padding-left: 0.5rem; padding-right: 0.5rem;
         }
-        .dark .tab-item:not(.active) {
-            background-color: #4b5563; /* dark:bg-gray-600 */
-        }
+        .tab-item.active + .tab-delete-btn { background-color: #3b82f6; color: white; }
+        .tab-item:not(.active) + .tab-delete-btn { background-color: #e5e7eb; }
+        .dark .tab-item:not(.active) + .tab-delete-btn { background-color: #4b5563; }
     </style>
     <script>
         if (localStorage.getItem('theme') === 'dark' || 
@@ -74,6 +78,12 @@
                         id="memo-input"
                         class="w-full h-64 p-4 border-none resize-none focus:ring-0 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 bg-transparent"
                         placeholder="ここに買うものを入力してね&#10;たまご&#10;牛乳&#10;パン&#10;等"></textarea>
+                    
+                    <!-- ▼▼▼ メモクリアボタンを追加 ▼▼▼ -->
+                    <button id="clear-memo-btn" class="absolute top-3 right-3 text-slate-400 hover:text-red-500 text-2xl p-2 focus:outline-none">
+                         eraser 
+                    </button>
+                    <!-- ▲▲▲ ココまでを追加 ▲▲▲ -->
                     
                     <button id="mic-btn" class="absolute bottom-4 right-4 bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition-transform transform hover:scale-110 focus:outline-none hidden">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
@@ -161,8 +171,6 @@
 
     <script>
         // --- Service Worker & Install Logic ---
-        // 以下の行はPWA化（アプリとしてインストールする機能）のために必要です。
-        // プレビュー環境ではエラーが表示される場合がありますが、ファイルとして保存してブラウザで開いた際には正しく動作します。
         if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('service-worker.js'); }); }
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; document.getElementById('install-container').classList.remove('hidden'); });
@@ -206,6 +214,7 @@
         const tabsContainer = document.getElementById('tabs-container');
         const tabsScroll = document.getElementById('tabs-scroll');
         const multiListToggle = document.getElementById('multi-list-toggle');
+        const clearMemoBtn = document.getElementById('clear-memo-btn'); // メモクリアボタンの要素
 
         // --- App State ---
         let appData = {};
@@ -221,18 +230,11 @@
                 appData = JSON.parse(savedData);
                 return;
             }
-
             appData = {
-                settings: {
-                    multiListEnabled: false,
-                    hideCompleted: false,
-                },
+                settings: { multiListEnabled: false, hideCompleted: false },
                 activeListId: 'default-list-1',
-                lists: [
-                    { id: 'default-list-1', name: '買い物リスト', content: '' }
-                ]
+                lists: [{ id: 'default-list-1', name: '買い物リスト', content: '' }]
             };
-            
             const oldMemo = localStorage.getItem('memoText');
             if (oldMemo) {
                 appData.lists[0].content = oldMemo;
@@ -246,25 +248,34 @@
             multiListToggle.checked = appData.settings.multiListEnabled;
             hideCompletedToggle.checked = appData.settings.hideCompleted;
             darkModeToggle.checked = document.documentElement.classList.contains('dark');
-
             tabsContainer.classList.toggle('hidden', !appData.settings.multiListEnabled);
-            
             if (appData.settings.multiListEnabled) {
                 renderTabs();
             }
-            
             loadActiveListData();
         }
 
         function renderTabs() {
             tabsScroll.innerHTML = '';
             appData.lists.forEach(list => {
+                const group = document.createElement('div');
+                group.className = 'tab-item-group flex-shrink-0';
+                
                 const tab = document.createElement('button');
-                tab.className = `tab-item text-sm font-bold py-2 px-4 rounded-full whitespace-nowrap ${list.id === appData.activeListId ? 'active' : ''}`;
+                tab.className = `tab-item text-sm font-bold py-2 pl-4 rounded-l-full whitespace-nowrap ${list.id === appData.activeListId ? 'active' : ''}`;
                 tab.textContent = list.name;
                 tab.dataset.listId = list.id;
                 tab.addEventListener('click', () => switchList(list.id));
-                tabsScroll.appendChild(tab);
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'tab-delete-btn text-sm font-bold py-2 rounded-r-full';
+                deleteBtn.innerHTML = '&times;';
+                deleteBtn.dataset.listId = list.id;
+                deleteBtn.addEventListener('click', () => deleteList(list.id));
+
+                group.appendChild(tab);
+                group.appendChild(deleteBtn);
+                tabsScroll.appendChild(group);
             });
 
             const addTabBtn = document.createElement('button');
@@ -298,6 +309,13 @@
 
         memoInput.addEventListener('input', updateActiveListData);
 
+        clearMemoBtn.addEventListener('click', () => {
+            if (memoInput.value && confirm('メモの内容をすべて消去しますか？')) {
+                memoInput.value = '';
+                updateActiveListData();
+            }
+        });
+
         switchToChecklistBtn.addEventListener('click', () => {
             const activeList = appData.lists.find(l => l.id === appData.activeListId);
             const text = activeList.content.trim();
@@ -326,13 +344,24 @@
         function addNewList() {
             const listName = prompt('新しいリストの名前を入力してください:', `リスト ${appData.lists.length + 1}`);
             if (listName) {
-                const newList = {
-                    id: `list-${Date.now()}`,
-                    name: listName,
-                    content: ''
-                };
+                const newList = { id: `list-${Date.now()}`, name: listName, content: '' };
                 appData.lists.push(newList);
                 switchList(newList.id);
+            }
+        }
+        
+        function deleteList(listId) {
+            if (appData.lists.length <= 1) {
+                alert('最後のリストは削除できません。');
+                return;
+            }
+            if (confirm('このリストを削除しますか？')) {
+                appData.lists = appData.lists.filter(list => list.id !== listId);
+                if (appData.activeListId === listId) {
+                    appData.activeListId = appData.lists[0].id;
+                }
+                saveData();
+                renderUI();
             }
         }
 
