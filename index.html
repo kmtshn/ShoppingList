@@ -20,33 +20,33 @@
             70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
             100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
         }
-        .toggle-checkbox:checked {
-            right: 0;
-            border-color: #4ade80;
+        .toggle-checkbox:checked { right: 0; border-color: #4ade80; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #4ade80; }
+        .tab-item { transition: all 0.2s ease-in-out; }
+        .tab-item.active {
+            background-color: #3b82f6; /* bg-blue-500 */
+            color: white;
         }
-        .toggle-checkbox:checked + .toggle-label {
-            background-color: #4ade80;
+        .tab-item:not(.active) {
+            background-color: #e5e7eb; /* bg-gray-200 */
+        }
+        .dark .tab-item:not(.active) {
+            background-color: #4b5563; /* dark:bg-gray-600 */
         }
     </style>
     <script>
-        // ▼▼▼ ダークモード適用のロジックを修正 ▼▼▼
-        // 起動時のテーマを決定する
-        // 1. localStorageに保存された設定を最優先
-        // 2. 保存された設定がなければ、OSの設定を参照
-        // 3. どちらもなければライトモードをデフォルトとする
         if (localStorage.getItem('theme') === 'dark' || 
            (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         } else {
             document.documentElement.classList.remove('dark');
         }
-        // ▲▲▲ ここまで修正 ▲▲▲
     </script>
 </head>
 <body class="bg-slate-50 dark:bg-slate-900 flex items-center justify-center min-h-screen transition-colors duration-300">
 
     <div class="w-full max-w-md mx-auto p-4">
-        <header class="text-center mb-8 relative">
+        <header class="text-center mb-4 relative">
             <h1 class="text-3xl md:text-4xl font-bold text-slate-800 dark:text-slate-200 flex items-center justify-center gap-2">
                 <span>メモリス</span>
                 <img src="icon-192.png" alt="メモリス アイコン" class="w-10 h-10">
@@ -60,8 +60,14 @@
             </div>
         </header>
 
+        <div id="tabs-container" class="mb-4 hidden">
+            <div id="tabs-scroll" class="flex items-center gap-2 overflow-x-auto pb-2">
+                <!-- Tabs will be dynamically inserted here -->
+            </div>
+        </div>
+
         <main>
-            <!-- メモ入力ビュー -->
+            <!-- Memo View -->
             <div id="memo-view">
                 <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-2 relative">
                     <textarea 
@@ -80,21 +86,18 @@
                 </div>
             </div>
 
-            <!-- チェックリストビュー -->
+            <!-- Checklist View -->
             <div id="checklist-view" class="hidden">
                 <div class="flex justify-between items-center mb-4 px-2">
-                    <h2 class="text-xl font-bold text-slate-700 dark:text-slate-200">買い物リスト</h2>
+                    <h2 id="checklist-title" class="text-xl font-bold text-slate-700 dark:text-slate-200">買い物リスト</h2>
                 </div>
-
                 <div id="checklist-container" class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-6 space-y-2"></div>
-                
                 <div class="mt-4 flex gap-2">
                     <input type="text" id="add-item-input" placeholder="アイテムを追加" class="flex-grow w-full bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 border-2 border-slate-200 dark:border-slate-600 rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent">
                     <button id="add-item-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold p-3 rounded-full shadow-lg transition-transform transform hover:scale-105 focus:outline-none">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
                     </button>
                 </div>
-
                 <div class="text-center mt-8">
                     <button id="switch-to-memo-btn" class="bg-slate-500 hover:bg-slate-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-slate-300 dark:focus:ring-slate-600">
                         メモに戻る
@@ -104,7 +107,7 @@
         </main>
     </div>
 
-    <!-- 設定モーダル -->
+    <!-- Settings Modal -->
     <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-6">
             <div class="flex justify-between items-center">
@@ -112,6 +115,14 @@
                 <button id="close-settings-btn" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
+            </div>
+            
+            <div class="flex items-center justify-between">
+                <span class="text-slate-600 dark:text-slate-300">複数リストモード</span>
+                <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                    <input type="checkbox" name="multi-list-toggle" id="multi-list-toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                    <label for="multi-list-toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-slate-300 dark:bg-slate-600 cursor-pointer"></label>
+                </div>
             </div>
 
             <div class="flex items-center justify-between">
@@ -140,7 +151,7 @@
         </div>
     </div>
 
-    <!-- インストールボタン -->
+    <!-- Install Button -->
     <div id="install-container" class="fixed bottom-4 right-4 hidden">
         <button id="install-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-full shadow-lg flex items-center transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-300">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
@@ -150,28 +161,14 @@
 
     <script>
         // --- Service Worker & Install Logic ---
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('service-worker.js').then(r => console.log('SW registered'), e => console.log('SW error'));
-            });
-        }
-        const installContainer = document.getElementById('install-container');
+        // 以下の行はPWA化（アプリとしてインストールする機能）のために必要です。
+        // プレビュー環境ではエラーが表示される場合がありますが、ファイルとして保存してブラウザで開いた際には正しく動作します。
+        if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('service-worker.js'); }); }
         let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            installContainer.classList.remove('hidden');
-        });
-        document.getElementById('install-btn').addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                await deferredPrompt.userChoice;
-                deferredPrompt = null;
-                installContainer.classList.add('hidden');
-            }
-        });
+        window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; document.getElementById('install-container').classList.remove('hidden'); });
+        document.getElementById('install-btn').addEventListener('click', async () => { if (deferredPrompt) { deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; document.getElementById('install-container').classList.add('hidden'); } });
 
-        // --- 音声入力ロジック ---
+        // --- Voice Input Logic ---
         const micBtn = document.getElementById('mic-btn');
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SpeechRecognition) {
@@ -185,16 +182,17 @@
                 const transcript = event.results[0][0].transcript;
                 const items = transcript.split(/と|、/).map(item => item.trim()).filter(Boolean);
                 memoInput.value += (memoInput.value ? '\n' : '') + items.join('\n');
-                localStorage.setItem('memoText', memoInput.value);
+                updateActiveListData();
             };
             recognition.onerror = (event) => console.error('Speech recognition error:', event.error);
         }
 
-        // --- アプリの主要ロジック ---
+        // --- Main App Logic ---
         const memoView = document.getElementById('memo-view');
         const checklistView = document.getElementById('checklist-view');
         const memoInput = document.getElementById('memo-input');
         const checklistContainer = document.getElementById('checklist-container');
+        const checklistTitle = document.getElementById('checklist-title');
         const switchToChecklistBtn = document.getElementById('switch-to-checklist-btn');
         const switchToMemoBtn = document.getElementById('switch-to-memo-btn');
         const settingsModal = document.getElementById('settings-modal');
@@ -205,26 +203,104 @@
         const clearCheckedBtn = document.getElementById('clear-checked-btn');
         const addItemInput = document.getElementById('add-item-input');
         const addItemBtn = document.getElementById('add-item-btn');
+        const tabsContainer = document.getElementById('tabs-container');
+        const tabsScroll = document.getElementById('tabs-scroll');
+        const multiListToggle = document.getElementById('multi-list-toggle');
 
-        // --- データ保存と読み込み ---
-        window.addEventListener('DOMContentLoaded', () => {
-            memoInput.value = localStorage.getItem('memoText') || '';
+        // --- App State ---
+        let appData = {};
+
+        // --- Data Persistence ---
+        function saveData() {
+            localStorage.setItem('shoppingListData', JSON.stringify(appData));
+        }
+
+        function loadData() {
+            const savedData = localStorage.getItem('shoppingListData');
+            if (savedData) {
+                appData = JSON.parse(savedData);
+                return;
+            }
+
+            appData = {
+                settings: {
+                    multiListEnabled: false,
+                    hideCompleted: false,
+                },
+                activeListId: 'default-list-1',
+                lists: [
+                    { id: 'default-list-1', name: '買い物リスト', content: '' }
+                ]
+            };
             
-            // ▼▼▼ トグルスイッチの状態を正しく設定するロジックを修正 ▼▼▼
-            // 現在のHTMLの状態（'dark'クラスがあるか）を元にトグルスイッチのON/OFFを決める
+            const oldMemo = localStorage.getItem('memoText');
+            if (oldMemo) {
+                appData.lists[0].content = oldMemo;
+                localStorage.removeItem('memoText');
+            }
+            saveData();
+        }
+        
+        // --- UI Rendering ---
+        function renderUI() {
+            multiListToggle.checked = appData.settings.multiListEnabled;
+            hideCompletedToggle.checked = appData.settings.hideCompleted;
             darkModeToggle.checked = document.documentElement.classList.contains('dark');
-            // ▲▲▲ ここまで修正 ▲▲▲
 
-            hideCompletedToggle.checked = localStorage.getItem('hideCompleted') === 'true';
+            tabsContainer.classList.toggle('hidden', !appData.settings.multiListEnabled);
+            
+            if (appData.settings.multiListEnabled) {
+                renderTabs();
+            }
+            
+            loadActiveListData();
+        }
+
+        function renderTabs() {
+            tabsScroll.innerHTML = '';
+            appData.lists.forEach(list => {
+                const tab = document.createElement('button');
+                tab.className = `tab-item text-sm font-bold py-2 px-4 rounded-full whitespace-nowrap ${list.id === appData.activeListId ? 'active' : ''}`;
+                tab.textContent = list.name;
+                tab.dataset.listId = list.id;
+                tab.addEventListener('click', () => switchList(list.id));
+                tabsScroll.appendChild(tab);
+            });
+
+            const addTabBtn = document.createElement('button');
+            addTabBtn.className = 'flex-shrink-0 bg-green-500 hover:bg-green-600 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center';
+            addTabBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>';
+            addTabBtn.addEventListener('click', addNewList);
+            tabsScroll.appendChild(addTabBtn);
+        }
+
+        function loadActiveListData() {
+            const activeList = appData.lists.find(l => l.id === appData.activeListId);
+            if (activeList) {
+                memoInput.value = activeList.content;
+                checklistTitle.textContent = activeList.name;
+            }
+        }
+
+        function updateActiveListData() {
+            const activeList = appData.lists.find(l => l.id === appData.activeListId);
+            if (activeList) {
+                activeList.content = memoInput.value;
+                saveData();
+            }
+        }
+
+        // --- Event Listeners ---
+        window.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            renderUI();
         });
 
-        memoInput.addEventListener('input', () => {
-            localStorage.setItem('memoText', memoInput.value);
-        });
+        memoInput.addEventListener('input', updateActiveListData);
 
-        // --- 画面切り替えロジック ---
         switchToChecklistBtn.addEventListener('click', () => {
-            const text = memoInput.value.trim();
+            const activeList = appData.lists.find(l => l.id === appData.activeListId);
+            const text = activeList.content.trim();
             if (!text) return;
             generateChecklist(text.split('\n').filter(Boolean));
             memoView.classList.add('hidden');
@@ -237,7 +313,29 @@
             memoView.classList.remove('hidden');
         });
 
-        // --- チェックリスト生成 ---
+        // --- List Management ---
+        function switchList(listId) {
+            appData.activeListId = listId;
+            saveData();
+            renderUI();
+            if (!checklistView.classList.contains('hidden')) {
+                switchToChecklistBtn.click();
+            }
+        }
+
+        function addNewList() {
+            const listName = prompt('新しいリストの名前を入力してください:', `リスト ${appData.lists.length + 1}`);
+            if (listName) {
+                const newList = {
+                    id: `list-${Date.now()}`,
+                    name: listName,
+                    content: ''
+                };
+                appData.lists.push(newList);
+                switchList(newList.id);
+            }
+        }
+
         function generateChecklist(items) {
             checklistContainer.innerHTML = '';
             items.forEach(itemText => createChecklistItem(itemText, false));
@@ -247,21 +345,17 @@
         function createChecklistItem(itemText, isChecked) {
             const itemDiv = document.createElement('div');
             itemDiv.className = 'flex items-center bg-slate-50 dark:bg-slate-700 p-3 rounded-lg transition-all duration-300 checklist-item';
-            
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.checked = isChecked;
             checkbox.className = 'h-5 w-5 rounded border-slate-300 text-blue-500 focus:ring-blue-400 dark:bg-slate-600 dark:border-slate-500';
-            
             const label = document.createElement('label');
             label.textContent = itemText;
             label.className = 'ml-3 text-slate-700 dark:text-slate-200 flex-grow';
-
             if (isChecked) {
                 label.classList.add('line-through', 'text-slate-400', 'dark:text-slate-500');
                 itemDiv.classList.add('completed-item');
             }
-            
             checkbox.addEventListener('change', () => {
                 label.classList.toggle('line-through', checkbox.checked);
                 label.classList.toggle('text-slate-400', checkbox.checked);
@@ -269,7 +363,6 @@
                 itemDiv.classList.toggle('completed-item', checkbox.checked);
                 applyHideCompletedFilter();
             });
-
             itemDiv.appendChild(checkbox);
             itemDiv.appendChild(label);
             checklistContainer.appendChild(itemDiv);
@@ -278,7 +371,7 @@
         function updateMemoFromChecklist() {
             const items = Array.from(document.querySelectorAll('.checklist-item label')).map(label => label.textContent);
             memoInput.value = items.join('\n');
-            localStorage.setItem('memoText', memoInput.value);
+            updateActiveListData();
         }
 
         const addNewItem = () => {
@@ -290,18 +383,19 @@
             }
         };
         addItemBtn.addEventListener('click', addNewItem);
-        addItemInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') addNewItem();
-        });
+        addItemInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addNewItem(); });
 
-        // --- 設定モーダルの表示・非表示 ---
+        // --- Settings Modal Logic ---
         openSettingsBtn.addEventListener('click', () => settingsModal.classList.remove('hidden'));
         closeSettingsBtn.addEventListener('click', () => settingsModal.classList.add('hidden'));
-        settingsModal.addEventListener('click', (e) => {
-            if (e.target === settingsModal) settingsModal.classList.add('hidden');
+        settingsModal.addEventListener('click', (e) => { if (e.target === settingsModal) settingsModal.classList.add('hidden'); });
+
+        multiListToggle.addEventListener('change', () => {
+            appData.settings.multiListEnabled = multiListToggle.checked;
+            saveData();
+            renderUI();
         });
 
-        // --- ダークモードの切り替え ---
         darkModeToggle.addEventListener('change', () => {
             if (darkModeToggle.checked) {
                 document.documentElement.classList.add('dark');
@@ -312,7 +406,6 @@
             }
         });
 
-        // --- 完了済みアイテムの表示・非表示 ---
         function applyHideCompletedFilter() {
             const shouldHide = hideCompletedToggle.checked;
             document.querySelectorAll('.completed-item').forEach(item => {
@@ -320,11 +413,11 @@
             });
         }
         hideCompletedToggle.addEventListener('change', () => {
-            localStorage.setItem('hideCompleted', hideCompletedToggle.checked);
+            appData.settings.hideCompleted = hideCompletedToggle.checked;
+            saveData();
             applyHideCompletedFilter();
         });
         
-        // --- チェック済みアイテムの一括削除 ---
         clearCheckedBtn.addEventListener('click', () => {
             if (confirm('本当にチェック済みのアイテムをすべて削除しますか？')) {
                 document.querySelectorAll('.completed-item').forEach(item => item.remove());
