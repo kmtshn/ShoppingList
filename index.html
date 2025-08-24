@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" class="">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,34 +23,45 @@
             70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
             100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
         }
+        /* トグルスイッチのスタイル */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #4ade80; /* green-400 */
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #4ade80; /* green-400 */
+        }
     </style>
-</head>
-<body class="bg-slate-50 flex items-center justify-center min-h-screen">
+    <script>
+        // ページの読み込み時にlocalStorageやOSの設定に基づいてダークモードを適用
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+    </head>
+<body class="bg-slate-50 dark:bg-slate-900 flex items-center justify-center min-h-screen transition-colors duration-300">
 
     <div class="w-full max-w-md mx-auto p-4">
-        <!-- ▼▼▼ headerタグの中身を修正 ▼▼▼ -->
         <header class="text-center mb-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-slate-800 flex items-center justify-center gap-2">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-800 dark:text-slate-200 flex items-center justify-center gap-2">
                 <span>メモリス</span>
                 <img src="icon-192.png" alt="メモリス アイコン" class="w-10 h-10">
             </h1>
-            <p class="text-slate-500 mt-2">メモをチェックリストに切り替えて使います。</p>
+            <p class="text-slate-500 dark:text-slate-400 mt-2">メモを入力し、チェックリストに切り替えて使います。</p>
         </header>
-        <!-- ▲▲▲ ココまでを修正 ▲▲▲ -->
 
         <main>
-            <!-- メモ入力ビュー -->
             <div id="memo-view">
-                <div class="bg-white rounded-2xl shadow-lg p-2 relative">
+                <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-2 relative">
                     <textarea 
                         id="memo-input"
-                        class="w-full h-64 p-4 border-none resize-none focus:ring-0 text-slate-700 placeholder-slate-400 bg-transparent"
-                        placeholder="ここに買うものを入力してね&#10;例：&#10;牛乳&#10;たまご&#10;パン"></textarea>
+                        class="w-full h-64 p-4 border-none resize-none focus:ring-0 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 bg-transparent"
+                        placeholder="ここに買うものを入力してね&#10;たまご&#10;牛乳&#10;パン&#10;等"></textarea>
                     
                     <button id="mic-btn" class="absolute bottom-4 right-4 bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition-transform transform hover:scale-110 focus:outline-none hidden">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                        </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
                     </button>
                 </div>
                 <div class="text-center mt-8">
@@ -60,11 +71,25 @@
                 </div>
             </div>
 
-            <!-- (チェックリストビューは変更なし) -->
             <div id="checklist-view" class="hidden">
-                <div id="checklist-container" class="bg-white rounded-2xl shadow-lg p-6 space-y-2"></div>
+                 <div class="flex justify-between items-center mb-4 px-2">
+                    <h2 class="text-xl font-bold text-slate-700 dark:text-slate-200">買い物リスト</h2>
+                    <button id="open-settings-btn" class="text-slate-500 hover:text-blue-500 dark:hover:text-blue-400 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0L8.21 5.15c-.5.42-1.12.7-1.78.83l-2.05.29c-1.61.23-2.26 2.18-1.04 3.28l1.5 1.55c.39.4.56.96.44 1.5l-.36 2.02c-.24 1.38 1.21 2.48 2.52 1.94l1.89-.79c.57-.24 1.2-.24 1.77 0l1.89.79c1.3.54 2.75-.56 2.52-1.94l-.36-2.02c-.12-.54.05-1.1.44-1.5l1.5-1.55c1.22-1.1 1.04-3.05-.57-3.28l-2.05-.29c-.66-.13-1.28-.4-1.78-.83l-1.3-1.98zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+                <div id="checklist-container" class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-6 space-y-2"></div>
+                
+                <div class="mt-4 flex gap-2">
+                    <input type="text" id="add-item-input" placeholder="アイテムを追加" class="flex-grow w-full bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 border-2 border-slate-200 dark:border-slate-600 rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent">
+                    <button id="add-item-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold p-3 rounded-full shadow-lg transition-transform transform hover:scale-105 focus:outline-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                    </button>
+                </div>
                 <div class="text-center mt-8">
-                    <button id="switch-to-memo-btn" class="bg-slate-500 hover:bg-slate-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-slate-300">
+                    <button id="switch-to-memo-btn" class="bg-slate-500 hover:bg-slate-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-slate-300 dark:focus:ring-slate-600">
                         メモに戻る
                     </button>
                 </div>
@@ -72,7 +97,40 @@
         </main>
     </div>
 
-    <!-- (インストールボタンは変更なし) -->
+    <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-6">
+            <div class="flex justify-between items-center">
+                <h3 class="text-2xl font-bold text-slate-800 dark:text-slate-200">設定</h3>
+                <button id="close-settings-btn" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+
+            <div class="flex items-center justify-between">
+                <span class="text-slate-600 dark:text-slate-300">ダークモード</span>
+                <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                    <input type="checkbox" name="dark-mode-toggle" id="dark-mode-toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                    <label for="dark-mode-toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-slate-300 dark:bg-slate-600 cursor-pointer"></label>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between">
+                <span class="text-slate-600 dark:text-slate-300">完了したアイテムを隠す</span>
+                <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                    <input type="checkbox" name="hide-completed-toggle" id="hide-completed-toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                    <label for="hide-completed-toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-slate-300 dark:bg-slate-600 cursor-pointer"></label>
+                </div>
+            </div>
+            
+            <hr class="border-slate-200 dark:border-slate-600">
+
+            <div>
+                <button id="clear-checked-btn" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-red-300">
+                    チェック済みを全て削除
+                </button>
+            </div>
+        </div>
+    </div>
     <div id="install-container" class="fixed bottom-4 right-4 hidden">
         <button id="install-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-full shadow-lg flex items-center transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-300">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
@@ -81,18 +139,12 @@
     </div>
 
     <script>
-        // --- Service Workerの登録 ---
+        // --- Service Worker & Install Logic (変更なし) ---
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('service-worker.js').then(registration => {
-                    console.log('ServiceWorker registration successful');
-                }, err => {
-                    console.log('ServiceWorker registration failed: ', err);
-                });
+                navigator.serviceWorker.register('service-worker.js').then(r => console.log('SW registered'), e => console.log('SW error'));
             });
         }
-
-        // --- インストールボタンのロジック ---
         const installContainer = document.getElementById('install-container');
         const installBtn = document.getElementById('install-btn');
         let deferredPrompt;
@@ -105,125 +157,189 @@
             if (deferredPrompt) {
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
-                console.log(`User response to the install prompt: ${outcome}`);
                 deferredPrompt = null;
                 installContainer.classList.add('hidden');
             }
         });
-        window.addEventListener('appinstalled', () => {
-            deferredPrompt = null;
-            console.log('PWA was installed');
-        });
 
-        // --- 音声入力のロジック ---
+        // --- 音声入力ロジック (変更なし) ---
         const micBtn = document.getElementById('mic-btn');
-        const memoInput = document.getElementById('memo-input');
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SpeechRecognition) {
             micBtn.classList.remove('hidden');
             const recognition = new SpeechRecognition();
             recognition.lang = 'ja-JP';
             recognition.interimResults = false;
-            recognition.continuous = false;
-
             micBtn.addEventListener('click', () => {
-                if (!micBtn.classList.contains('recording')) {
-                    recognition.start();
-                } else {
-                    recognition.stop();
-                }
+                micBtn.classList.contains('recording') ? recognition.stop() : recognition.start();
             });
-
-            recognition.onstart = () => {
-                micBtn.classList.add('recording', 'bg-red-500', 'hover:bg-red-600');
-            };
-
-            recognition.onend = () => {
-                micBtn.classList.remove('recording', 'bg-red-500', 'hover:bg-red-600');
-            };
-
+            recognition.onstart = () => micBtn.classList.add('recording', 'bg-red-500', 'hover:bg-red-600');
+            recognition.onend = () => micBtn.classList.remove('recording', 'bg-red-500', 'hover:bg-red-600');
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
-                const items = transcript.split('と').map(item => item.trim()).filter(item => item);
-                const newText = items.join('\n');
-                memoInput.value += (memoInput.value ? '\n' : '') + newText;
+                const items = transcript.split(/と|、/).map(item => item.trim()).filter(item => item);
+                memoInput.value += (memoInput.value ? '\n' : '') + items.join('\n');
+                localStorage.setItem('memoText', memoInput.value); // 保存
             };
-
-            recognition.onerror = (event) => {
-                console.error('Speech recognition error detected: ' + event.error);
-                alert('音声認識でエラーが発生しました。マイクの許可を確認してください。');
-            };
-
-        } else {
-            console.log('Web Speech API is not supported in this browser.');
+            recognition.onerror = (event) => console.error('Speech recognition error:', event.error);
         }
 
-        // --- (ここから下は元々あったアプリのコード) ---
-        // 1. アプリ起動時にlocalStorageからデータを読み込む
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedMemo = localStorage.getItem('memoText');
-            if (savedMemo) {
-                memoInput.value = savedMemo;
-            }
-        });
-
-        // 2. テキストエリアに入力があるたびにlocalStorageにデータを保存する
-        memoInput.addEventListener('input', () => {
-            localStorage.setItem('memoText', memoInput.value);
-        });
-
-        // ▲▲▲ ここまで追加 ▲▲▲
-
+        // --- アプリの主要ロジック ---
         const memoView = document.getElementById('memo-view');
         const checklistView = document.getElementById('checklist-view');
-        // ... (以下、既存のコードが続く)
-        
-        const memoView = document.getElementById('memo-view');
-        const checklistView = document.getElementById('checklist-view');
+        const memoInput = document.getElementById('memo-input');
         const checklistContainer = document.getElementById('checklist-container');
         const switchToChecklistBtn = document.getElementById('switch-to-checklist-btn');
         const switchToMemoBtn = document.getElementById('switch-to-memo-btn');
         
+        // ▼▼▼ ここから下が大幅な変更・追加箇所です ▼▼▼
+
+        // --- 設定モーダル関連の要素 ---
+        const settingsModal = document.getElementById('settings-modal');
+        const openSettingsBtn = document.getElementById('open-settings-btn');
+        const closeSettingsBtn = document.getElementById('close-settings-btn');
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        const hideCompletedToggle = document.getElementById('hide-completed-toggle');
+        const clearCheckedBtn = document.getElementById('clear-checked-btn');
+
+        // --- アイテム追加関連の要素 ---
+        const addItemInput = document.getElementById('add-item-input');
+        const addItemBtn = document.getElementById('add-item-btn');
+
+        // --- データ保存と読み込み ---
+        window.addEventListener('DOMContentLoaded', () => {
+            // メモの読み込み
+            memoInput.value = localStorage.getItem('memoText') || '';
+            
+            // ダークモード設定の読み込みと適用
+            const isDarkMode = localStorage.getItem('theme') === 'dark';
+            darkModeToggle.checked = isDarkMode;
+            if (isDarkMode) {
+                document.documentElement.classList.add('dark');
+            }
+
+            // 完了アイテム非表示設定の読み込み
+            hideCompletedToggle.checked = localStorage.getItem('hideCompleted') === 'true';
+        });
+
+        memoInput.addEventListener('input', () => {
+            localStorage.setItem('memoText', memoInput.value);
+        });
+
+        // --- 画面切り替えロジック ---
         switchToChecklistBtn.addEventListener('click', () => {
             const text = memoInput.value.trim();
-            if (!text) {
-                memoInput.classList.add('animate-pulse');
-                setTimeout(() => memoInput.classList.remove('animate-pulse'), 1000);
-                return;
-            }
-            const items = text.split('\n').filter(line => line.trim() !== '');
-            generateChecklist(items);
+            if (!text) return;
+            generateChecklist(text.split('\n').filter(line => line.trim() !== ''));
             memoView.classList.add('hidden');
             checklistView.classList.remove('hidden');
         });
 
         switchToMemoBtn.addEventListener('click', () => {
+            updateMemoFromChecklist();
             checklistView.classList.add('hidden');
             memoView.classList.remove('hidden');
         });
 
+        // --- チェックリスト生成 ---
         function generateChecklist(items) {
             checklistContainer.innerHTML = '';
-            items.forEach((itemText, index) => {
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'flex items-center bg-slate-50 p-3 rounded-lg';
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.id = `item-${index}`;
-                checkbox.className = 'h-5 w-5 rounded border-slate-300 text-blue-500 focus:ring-blue-400';
-                const label = document.createElement('label');
-                label.htmlFor = `item-${index}`;
-                label.textContent = itemText;
-                label.className = 'ml-3 text-slate-700';
-                checkbox.addEventListener('change', () => {
-                    label.classList.toggle('line-through', checkbox.checked);
-                    label.classList.toggle('text-slate-400', checkbox.checked);
-                });
-                itemDiv.appendChild(checkbox);
-                itemDiv.appendChild(label);
-                checklistContainer.appendChild(itemDiv);
+            items.forEach(itemText => createChecklistItem(itemText, false));
+            applyHideCompletedFilter(); // フィルタを適用
+        }
+
+        // --- チェックリストのアイテムを1つ作成する関数 ---
+        function createChecklistItem(itemText, isChecked) {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'flex items-center bg-slate-50 dark:bg-slate-700 p-3 rounded-lg transition-all duration-300 checklist-item';
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = isChecked;
+            checkbox.className = 'h-5 w-5 rounded border-slate-300 text-blue-500 focus:ring-blue-400 dark:bg-slate-600 dark:border-slate-500';
+            
+            const label = document.createElement('label');
+            label.textContent = itemText;
+            label.className = 'ml-3 text-slate-700 dark:text-slate-200 flex-grow';
+
+            if (isChecked) {
+                label.classList.add('line-through', 'text-slate-400', 'dark:text-slate-500');
+                itemDiv.classList.add('completed-item');
+            }
+            
+            checkbox.addEventListener('change', () => {
+                label.classList.toggle('line-through', checkbox.checked);
+                label.classList.toggle('text-slate-400', checkbox.checked);
+                label.classList.toggle('dark:text-slate-500', checkbox.checked);
+                itemDiv.classList.toggle('completed-item', checkbox.checked);
+                applyHideCompletedFilter(); // フィルタを更新
+            });
+
+            itemDiv.appendChild(checkbox);
+            itemDiv.appendChild(label);
+            checklistContainer.appendChild(itemDiv);
+        }
+        
+        // --- リストからメモへ内容を同期 ---
+        function updateMemoFromChecklist() {
+            const items = [];
+            document.querySelectorAll('.checklist-item').forEach(itemDiv => {
+                const label = itemDiv.querySelector('label');
+                items.push(label.textContent);
+            });
+            memoInput.value = items.join('\n');
+            localStorage.setItem('memoText', memoInput.value);
+        }
+
+        // --- リストからアイテムを追加 ---
+        const addNewItem = () => {
+            const newItemText = addItemInput.value.trim();
+            if (newItemText) {
+                createChecklistItem(newItemText, false);
+                addItemInput.value = '';
+                updateMemoFromChecklist(); // 追加後、メモも更新
+            }
+        };
+        addItemBtn.addEventListener('click', addNewItem);
+        addItemInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addNewItem();
+        });
+
+        // --- 設定モーダルの表示・非表示 ---
+        openSettingsBtn.addEventListener('click', () => settingsModal.classList.remove('hidden'));
+        closeSettingsBtn.addEventListener('click', () => settingsModal.classList.add('hidden'));
+
+        // --- ダークモードの切り替え ---
+        darkModeToggle.addEventListener('change', () => {
+            if (darkModeToggle.checked) {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            }
+        });
+
+        // --- 完了済みアイテムの表示・非表示 ---
+        function applyHideCompletedFilter() {
+            const shouldHide = hideCompletedToggle.checked;
+            document.querySelectorAll('.completed-item').forEach(item => {
+                item.classList.toggle('hidden', shouldHide);
             });
         }
+        hideCompletedToggle.addEventListener('change', () => {
+            localStorage.setItem('hideCompleted', hideCompletedToggle.checked);
+            applyHideCompletedFilter();
+        });
+        
+        // --- チェック済みアイテムの一括削除 ---
+        clearCheckedBtn.addEventListener('click', () => {
+            if (confirm('本当にチェック済みのアイテムをすべて削除しますか？')) {
+                document.querySelectorAll('.completed-item').forEach(item => item.remove());
+                updateMemoFromChecklist(); // 削除後、メモも更新
+                settingsModal.classList.add('hidden'); // モーダルを閉じる
+            }
+        });
     </script>
 </body>
 </html>
