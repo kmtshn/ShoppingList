@@ -40,19 +40,31 @@
             document.documentElement.classList.remove('dark');
         }
     </script>
-    </head>
+</head>
 <body class="bg-slate-50 dark:bg-slate-900 flex items-center justify-center min-h-screen transition-colors duration-300">
 
     <div class="w-full max-w-md mx-auto p-4">
-        <header class="text-center mb-8">
+        <!-- ▼▼▼ headerの構造を修正 ▼▼▼ -->
+        <header class="text-center mb-8 relative">
             <h1 class="text-3xl md:text-4xl font-bold text-slate-800 dark:text-slate-200 flex items-center justify-center gap-2">
                 <span>メモリス</span>
                 <img src="icon-192.png" alt="メモリス アイコン" class="w-10 h-10">
             </h1>
             <p class="text-slate-500 dark:text-slate-400 mt-2">メモを入力し、チェックリストに切り替えて使います。</p>
+            
+            <!-- 設定ボタンをヘッダー右上に移動 -->
+            <div class="absolute top-0 right-0">
+                <button id="open-settings-btn" class="text-slate-500 hover:text-blue-500 dark:hover:text-blue-400 transition-colors p-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0L8.21 5.15c-.5.42-1.12.7-1.78.83l-2.05.29c-1.61.23-2.26 2.18-1.04 3.28l1.5 1.55c.39.4.56.96.44 1.5l-.36 2.02c-.24 1.38 1.21 2.48 2.52 1.94l1.89-.79c.57-.24 1.2-.24 1.77 0l1.89.79c1.3.54 2.75-.56 2.52-1.94l-.36-2.02c-.12-.54.05-1.1.44-1.5l1.5-1.55c1.22-1.1 1.04-3.05-.57-3.28l-2.05-.29c-.66-.13-1.28-.4-1.78-.83l-1.3-1.98zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
         </header>
+        <!-- ▲▲▲ ココまでを修正 ▲▲▲ -->
 
         <main>
+            <!-- メモ入力ビュー -->
             <div id="memo-view">
                 <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-2 relative">
                     <textarea 
@@ -71,15 +83,13 @@
                 </div>
             </div>
 
+            <!-- チェックリストビュー -->
             <div id="checklist-view" class="hidden">
-                 <div class="flex justify-between items-center mb-4 px-2">
+                <div class="flex justify-between items-center mb-4 px-2">
                     <h2 class="text-xl font-bold text-slate-700 dark:text-slate-200">買い物リスト</h2>
-                    <button id="open-settings-btn" class="text-slate-500 hover:text-blue-500 dark:hover:text-blue-400 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0L8.21 5.15c-.5.42-1.12.7-1.78.83l-2.05.29c-1.61.23-2.26 2.18-1.04 3.28l1.5 1.55c.39.4.56.96.44 1.5l-.36 2.02c-.24 1.38 1.21 2.48 2.52 1.94l1.89-.79c.57-.24 1.2-.24 1.77 0l1.89.79c1.3.54 2.75-.56 2.52-1.94l-.36-2.02c-.12-.54.05-1.1.44-1.5l1.5-1.55c1.22-1.1 1.04-3.05-.57-3.28l-2.05-.29c-.66-.13-1.28-.4-1.78-.83l-1.3-1.98zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
-                        </svg>
-                    </button>
+                    <!-- 設定ボタンはヘッダーに移動したため、ここからは削除 -->
                 </div>
+
                 <div id="checklist-container" class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-6 space-y-2"></div>
                 
                 <div class="mt-4 flex gap-2">
@@ -88,6 +98,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
                     </button>
                 </div>
+
                 <div class="text-center mt-8">
                     <button id="switch-to-memo-btn" class="bg-slate-500 hover:bg-slate-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-slate-300 dark:focus:ring-slate-600">
                         メモに戻る
@@ -97,6 +108,7 @@
         </main>
     </div>
 
+    <!-- 設定モーダル -->
     <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-6">
             <div class="flex justify-between items-center">
@@ -106,6 +118,7 @@
                 </button>
             </div>
 
+            <!-- ダークモード設定 -->
             <div class="flex items-center justify-between">
                 <span class="text-slate-600 dark:text-slate-300">ダークモード</span>
                 <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
@@ -114,6 +127,7 @@
                 </div>
             </div>
 
+            <!-- 完了済みを隠す設定 -->
             <div class="flex items-center justify-between">
                 <span class="text-slate-600 dark:text-slate-300">完了したアイテムを隠す</span>
                 <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
@@ -124,6 +138,7 @@
             
             <hr class="border-slate-200 dark:border-slate-600">
 
+            <!-- チェック済みを削除 -->
             <div>
                 <button id="clear-checked-btn" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-red-300">
                     チェック済みを全て削除
@@ -131,6 +146,8 @@
             </div>
         </div>
     </div>
+
+    <!-- インストールボタン -->
     <div id="install-container" class="fixed bottom-4 right-4 hidden">
         <button id="install-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-full shadow-lg flex items-center transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-300">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
@@ -139,7 +156,7 @@
     </div>
 
     <script>
-        // --- Service Worker & Install Logic (変更なし) ---
+        // --- Service Worker & Install Logic ---
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('service-worker.js').then(r => console.log('SW registered'), e => console.log('SW error'));
@@ -156,13 +173,13 @@
         installBtn.addEventListener('click', async () => {
             if (deferredPrompt) {
                 deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
+                await deferredPrompt.userChoice;
                 deferredPrompt = null;
                 installContainer.classList.add('hidden');
             }
         });
 
-        // --- 音声入力ロジック (変更なし) ---
+        // --- 音声入力ロジック ---
         const micBtn = document.getElementById('mic-btn');
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SpeechRecognition) {
@@ -192,8 +209,6 @@
         const switchToChecklistBtn = document.getElementById('switch-to-checklist-btn');
         const switchToMemoBtn = document.getElementById('switch-to-memo-btn');
         
-        // ▼▼▼ ここから下が大幅な変更・追加箇所です ▼▼▼
-
         // --- 設定モーダル関連の要素 ---
         const settingsModal = document.getElementById('settings-modal');
         const openSettingsBtn = document.getElementById('open-settings-btn');
@@ -208,17 +223,12 @@
 
         // --- データ保存と読み込み ---
         window.addEventListener('DOMContentLoaded', () => {
-            // メモの読み込み
             memoInput.value = localStorage.getItem('memoText') || '';
             
-            // ダークモード設定の読み込みと適用
             const isDarkMode = localStorage.getItem('theme') === 'dark';
             darkModeToggle.checked = isDarkMode;
-            if (isDarkMode) {
-                document.documentElement.classList.add('dark');
-            }
+            // Note: 初期表示のダークモード適用は<head>内のスクリプトで行う
 
-            // 完了アイテム非表示設定の読み込み
             hideCompletedToggle.checked = localStorage.getItem('hideCompleted') === 'true';
         });
 
@@ -245,10 +255,9 @@
         function generateChecklist(items) {
             checklistContainer.innerHTML = '';
             items.forEach(itemText => createChecklistItem(itemText, false));
-            applyHideCompletedFilter(); // フィルタを適用
+            applyHideCompletedFilter();
         }
 
-        // --- チェックリストのアイテムを1つ作成する関数 ---
         function createChecklistItem(itemText, isChecked) {
             const itemDiv = document.createElement('div');
             itemDiv.className = 'flex items-center bg-slate-50 dark:bg-slate-700 p-3 rounded-lg transition-all duration-300 checklist-item';
@@ -272,7 +281,7 @@
                 label.classList.toggle('text-slate-400', checkbox.checked);
                 label.classList.toggle('dark:text-slate-500', checkbox.checked);
                 itemDiv.classList.toggle('completed-item', checkbox.checked);
-                applyHideCompletedFilter(); // フィルタを更新
+                applyHideCompletedFilter();
             });
 
             itemDiv.appendChild(checkbox);
@@ -280,7 +289,6 @@
             checklistContainer.appendChild(itemDiv);
         }
         
-        // --- リストからメモへ内容を同期 ---
         function updateMemoFromChecklist() {
             const items = [];
             document.querySelectorAll('.checklist-item').forEach(itemDiv => {
@@ -291,13 +299,12 @@
             localStorage.setItem('memoText', memoInput.value);
         }
 
-        // --- リストからアイテムを追加 ---
         const addNewItem = () => {
             const newItemText = addItemInput.value.trim();
             if (newItemText) {
                 createChecklistItem(newItemText, false);
                 addItemInput.value = '';
-                updateMemoFromChecklist(); // 追加後、メモも更新
+                updateMemoFromChecklist();
             }
         };
         addItemBtn.addEventListener('click', addNewItem);
@@ -308,6 +315,11 @@
         // --- 設定モーダルの表示・非表示 ---
         openSettingsBtn.addEventListener('click', () => settingsModal.classList.remove('hidden'));
         closeSettingsBtn.addEventListener('click', () => settingsModal.classList.add('hidden'));
+        settingsModal.addEventListener('click', (e) => {
+            if (e.target === settingsModal) {
+                settingsModal.classList.add('hidden');
+            }
+        });
 
         // --- ダークモードの切り替え ---
         darkModeToggle.addEventListener('change', () => {
@@ -334,10 +346,12 @@
         
         // --- チェック済みアイテムの一括削除 ---
         clearCheckedBtn.addEventListener('click', () => {
-            if (confirm('本当にチェック済みのアイテムをすべて削除しますか？')) {
+            // confirm() は環境によって動作しないことがあるため、より確実なUIを将来的に検討
+            const userConfirmed = confirm('本当にチェック済みのアイテムをすべて削除しますか？');
+            if (userConfirmed) {
                 document.querySelectorAll('.completed-item').forEach(item => item.remove());
-                updateMemoFromChecklist(); // 削除後、メモも更新
-                settingsModal.classList.add('hidden'); // モーダルを閉じる
+                updateMemoFromChecklist();
+                settingsModal.classList.add('hidden');
             }
         });
     </script>
