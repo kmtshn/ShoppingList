@@ -111,12 +111,12 @@ test('legacy clipboard fallback copies selected text, restores focus and reports
     app.window.document.execCommand = () => false;
     app.click('copy-all-btn');
     await settle();
-    assert.match(app.get('action-status').textContent, /コピーできませんでした/);
+    assert.match(app.get('action-status').textContent, /コピーできません/);
     app.click('switch-to-checklist-btn');
     app.check('checklist-item-0');
     app.click('share-purchased-btn');
     await settle();
-    assert.match(app.get('action-status').textContent, /共有できませんでした/);
+    assert.match(app.get('action-status').textContent, /共有できません/);
     app.dom.window.close();
 });
 
@@ -164,18 +164,18 @@ test('service worker precaches only existing files; old cache cleanup preserves 
     let skipped = false, claimed = false;
     const context = {
         self: { addEventListener: (name, handler) => { events[name] = handler; }, skipWaiting: async () => { skipped = true; }, clients: { claim: async () => { claimed = true; } } },
-        caches: { open: async () => ({ addAll: async urls => { for (const url of urls) { assert.ok(fs.existsSync(path.join(root, url === './' ? 'index.html' : url)), url); cached.push(url); } } }), keys: async () => ['memoris-cache-v3', 'memoris-cache-v4', 'another-app-cache'], delete: async name => { deleted.push(name); } },
+        caches: { open: async () => ({ addAll: async urls => { for (const url of urls) { assert.ok(fs.existsSync(path.join(root, url === './' ? 'index.html' : url)), url); cached.push(url); } } }), keys: async () => ['memoris-cache-v4', 'memoris-cache-v5', 'another-app-cache'], delete: async name => { deleted.push(name); } },
         console: { log() {} },
     };
     vm.runInNewContext(fs.readFileSync(path.join(root, 'service-worker.js'), 'utf8'), context);
     let pending;
     events.install({ waitUntil: promise => { pending = promise; } });
     await pending;
-    for (const file of ['./app.js', './index.html', './icon-512.svg', './icon-192.png', './icon-512.png', './manifest.json']) assert.ok(cached.includes(file), file);
+    for (const file of ['./app.js', './index.html', './squirrel-mark.svg', './icon-512.svg', './icon-192.png', './icon-512.png', './manifest.json']) assert.ok(cached.includes(file), file);
     assert.equal(skipped, true);
     events.activate({ waitUntil: promise => { pending = promise; } });
     await pending;
-    assert.deepEqual(deleted, ['memoris-cache-v3']);
+    assert.deepEqual(deleted, ['memoris-cache-v4']);
     assert.equal(claimed, true);
     const offlineResponse = { text: async () => script };
     context.caches.match = async () => offlineResponse;

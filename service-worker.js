@@ -1,4 +1,4 @@
-const CACHE_NAME = 'memoris-cache-v4';
+const CACHE_NAME = 'memoris-cache-v5';
 
 const urlsToCache = [
   './',
@@ -6,6 +6,7 @@ const urlsToCache = [
   './app.js',
   './manifest.json',
   './icon-512.svg',
+  './squirrel-mark.svg',
   './icon-192.png',
   './icon-512.png'
 ];
