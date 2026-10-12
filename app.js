@@ -313,7 +313,10 @@ function updateActionButtons() {
     const purchasedCount = activeList.items.filter(item => item.checked).length;
     copyAllBtn.disabled = !activeList.content.trim();
     sharePurchasedBtn.disabled = purchasedCount === 0;
-    sharePurchasedBtn.textContent = `購入済みを共有（${purchasedCount}件）`;
+    const countLabel = document.createElement('span');
+    countLabel.className = 'purchase-count';
+    countLabel.textContent = `（${purchasedCount}件）`;
+    sharePurchasedBtn.replaceChildren(document.createTextNode('購入済みを共有'), countLabel);
 }
 
 async function copyText(text) {
@@ -350,7 +353,7 @@ copyAllBtn.addEventListener('click', async () => {
         await copyText(text);
         actionStatus.textContent = 'リスト全体をコピーしました。';
     } catch (error) {
-        actionStatus.textContent = 'コピーできませんでした。もう一度お試しください。';
+        actionStatus.textContent = 'コピーできません。再度お試しください。';
     }
 });
 
@@ -372,8 +375,8 @@ sharePurchasedBtn.addEventListener('click', async () => {
     }
     try {
         await copyText(text);
-        actionStatus.textContent = '購入済みのリストをコピーしました。共有先に貼り付けてください。';
+        actionStatus.textContent = 'コピー済み。共有先に貼り付けてください。';
     } catch (error) {
-        actionStatus.textContent = '共有できませんでした。もう一度お試しください。';
+        actionStatus.textContent = '共有できません。再度お試しください。';
     }
 });
