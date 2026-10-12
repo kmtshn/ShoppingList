@@ -1,11 +1,11 @@
-// ▼▼▼ ここのバージョン番号を v1 から v2 に変更 ▼▼▼
-const CACHE_NAME = 'memoris-cache-v3';
-// ▲▲▲ これだけでOK ▲▲▲
+const CACHE_NAME = 'memoris-cache-v4';
 
 const urlsToCache = [
   './',
   './index.html',
+  './app.js',
   './manifest.json',
+  './icon-512.svg',
   './icon-192.png',
   './icon-512.png'
 ];
@@ -18,28 +18,29 @@ self.addEventListener('install', (event) => {
         console.log('Opened cache');
         return cache.addAll(urlsToCache);
       })
+      .then(() => self.skipWaiting())
   );
 });
 
 // Service Workerの有効化イベント
 self.addEventListener('activate', (event) => {
-  const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           // ホワイトリストにない古いキャッシュ(v1)を削除
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
+          if (cacheName.startsWith('memoris-cache-') && cacheName !== CACHE_NAME) {
             return caches.delete(cacheName);
           }
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
 });
 
 // ファイルへのリクエストがあったときのイベント
 self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
