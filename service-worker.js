@@ -1,4 +1,4 @@
-const CACHE_NAME = 'memoris-cache-v5';
+const CACHE_NAME = 'memoris-cache-v6';
 
 const urlsToCache = [
   './',

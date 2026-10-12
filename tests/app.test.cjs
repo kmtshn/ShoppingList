@@ -8,10 +8,12 @@ const root = path.resolve(__dirname, '..');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const script = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
 
-function openApp(seed) {
+function openApp(seed, systemDark = false) {
     const dom = new JSDOM(html, { url: 'https://example.com/ShoppingList/', runScripts: 'outside-only', pretendToBeVisual: true });
     const { window } = dom;
-    window.matchMedia = () => ({ matches: false });
+    const media = new window.EventTarget();
+    media.matches = systemDark;
+    window.matchMedia = () => media;
     window.confirm = () => true;
     if (seed) window.localStorage.setItem('shoppingListData', JSON.stringify(seed));
     const copied = [];
@@ -23,9 +25,51 @@ function openApp(seed) {
     const fill = (id, value) => { get(id).value = value; get(id).dispatchEvent(new window.Event('input')); };
     const check = id => { get(id).checked = !get(id).checked; get(id).dispatchEvent(new window.Event('change')); };
     const saved = () => JSON.parse(window.localStorage.getItem('shoppingListData'));
-    return { dom, window, copied, get, click, fill, check, saved };
+    const selectTheme = value => { get('theme-select').value = value; get('theme-select').dispatchEvent(new window.Event('change')); };
+    const setSystemDark = value => { media.matches = value; media.dispatchEvent(new window.Event('change')); };
+    return { dom, window, copied, get, click, fill, check, saved, selectTheme, setSystemDark };
 }
 const settle = () => new Promise(resolve => setImmediate(resolve));
+
+test('manual theme overrides the device and persists after reload without changing lists', () => {
+    let app = openApp(undefined, true);
+    const isDark = () => app.window.document.documentElement.classList.contains('dark');
+    assert.equal(isDark(), true);
+    app.fill('memo-input', '牛乳\nパン');
+    app.selectTheme('light');
+    assert.equal(isDark(), false);
+    assert.equal(app.window.document.documentElement.style.colorScheme, 'light');
+    app.setSystemDark(false);
+    app.setSystemDark(true);
+    assert.equal(isDark(), false);
+    const saved = app.saved();
+    app.dom.window.close();
+    app = openApp(saved, true);
+    assert.equal(app.get('theme-select').value, 'light');
+    assert.equal(isDark(), false);
+    assert.equal(app.get('memo-input').value, '牛乳\nパン');
+    app.selectTheme('dark');
+    app.setSystemDark(false);
+    assert.equal(isDark(), true);
+    assert.equal(app.saved().settings.theme, 'dark');
+    app.dom.window.close();
+});
+
+test('existing settings default to system theme and follow device changes only in system mode', () => {
+    const app = openApp({ settings: { multiListEnabled: false, hideCompleted: true }, activeListId: 'first', lists: [{ id: 'first', name: '食品', content: '牛乳' }] });
+    const isDark = () => app.window.document.documentElement.classList.contains('dark');
+    assert.equal(app.get('theme-select').value, 'system');
+    assert.equal(app.saved().settings.hideCompleted, true);
+    app.setSystemDark(true);
+    assert.equal(isDark(), true);
+    app.selectTheme('light');
+    assert.equal(isDark(), false);
+    app.selectTheme('system');
+    assert.equal(isDark(), true);
+    app.setSystemDark(false);
+    assert.equal(isDark(), false);
+    app.dom.window.close();
+});
 
 test('bulk copy preserves memo formatting; empty controls are disabled', async () => {
     const app = openApp();
@@ -164,7 +208,7 @@ test('service worker precaches only existing files; old cache cleanup preserves 
     let skipped = false, claimed = false;
     const context = {
         self: { addEventListener: (name, handler) => { events[name] = handler; }, skipWaiting: async () => { skipped = true; }, clients: { claim: async () => { claimed = true; } } },
-        caches: { open: async () => ({ addAll: async urls => { for (const url of urls) { assert.ok(fs.existsSync(path.join(root, url === './' ? 'index.html' : url)), url); cached.push(url); } } }), keys: async () => ['memoris-cache-v4', 'memoris-cache-v5', 'another-app-cache'], delete: async name => { deleted.push(name); } },
+        caches: { open: async () => ({ addAll: async urls => { for (const url of urls) { assert.ok(fs.existsSync(path.join(root, url === './' ? 'index.html' : url)), url); cached.push(url); } } }), keys: async () => ['memoris-cache-v5', 'memoris-cache-v6', 'another-app-cache'], delete: async name => { deleted.push(name); } },
         console: { log() {} },
     };
     vm.runInNewContext(fs.readFileSync(path.join(root, 'service-worker.js'), 'utf8'), context);
@@ -175,7 +219,7 @@ test('service worker precaches only existing files; old cache cleanup preserves 
     assert.equal(skipped, true);
     events.activate({ waitUntil: promise => { pending = promise; } });
     await pending;
-    assert.deepEqual(deleted, ['memoris-cache-v4']);
+    assert.deepEqual(deleted, ['memoris-cache-v5']);
     assert.equal(claimed, true);
     const offlineResponse = { text: async () => script };
     context.caches.match = async () => offlineResponse;

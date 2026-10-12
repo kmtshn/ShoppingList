@@ -41,6 +41,8 @@ const addItemBtn = document.getElementById('add-item-btn');
 const tabsContainer = document.getElementById('tabs-container');
 const tabsScroll = document.getElementById('tabs-scroll');
 const multiListToggle = document.getElementById('multi-list-toggle');
+const themeSelect = document.getElementById('theme-select');
+const systemTheme = window.matchMedia('(prefers-color-scheme: dark)');
 const clearMemoBtn = document.getElementById('clear-memo-btn');
 const copyAllBtn = document.getElementById('copy-all-btn');
 const sharePurchasedBtn = document.getElementById('share-purchased-btn');
@@ -56,11 +58,15 @@ function loadData() {
     const savedData = localStorage.getItem('shoppingListData');
     if (savedData) {
         appData = JSON.parse(savedData);
+        if (!['system', 'light', 'dark'].includes(appData.settings.theme)) {
+            appData.settings.theme = 'system';
+            saveData();
+        }
         appData.lists.forEach(syncListItems);
         return;
     }
     appData = {
-        settings: { multiListEnabled: false, hideCompleted: false },
+        settings: { multiListEnabled: false, hideCompleted: false, theme: 'system' },
         activeListId: 'default-list-1',
         lists: [{ id: 'default-list-1', name: '買い物リスト', content: '' }]
     };
@@ -70,14 +76,21 @@ function loadData() {
         localStorage.removeItem('memoText');
     }
     appData.lists.forEach(syncListItems);
-    // 以前のバージョンで保存されたテーマ設定を削除
-    localStorage.removeItem('theme');
     saveData();
+}
+
+function applyTheme() {
+    const dark = appData.settings.theme === 'dark' ||
+        (appData.settings.theme === 'system' && systemTheme.matches);
+    document.documentElement.classList.toggle('dark', dark);
+    document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
 }
 
 function renderUI() {
     multiListToggle.checked = appData.settings.multiListEnabled;
     hideCompletedToggle.checked = appData.settings.hideCompleted;
+    themeSelect.value = appData.settings.theme;
+    applyTheme();
     tabsContainer.classList.toggle('hidden', !appData.settings.multiListEnabled);
     if (appData.settings.multiListEnabled) {
         renderTabs();
@@ -261,6 +274,15 @@ addItemInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addNew
 openSettingsBtn.addEventListener('click', () => settingsModal.classList.remove('hidden'));
 closeSettingsBtn.addEventListener('click', () => settingsModal.classList.add('hidden'));
 settingsModal.addEventListener('click', (e) => { if (e.target === settingsModal) settingsModal.classList.add('hidden'); });
+
+themeSelect.addEventListener('change', () => {
+    appData.settings.theme = themeSelect.value;
+    saveData();
+    applyTheme();
+});
+systemTheme.addEventListener('change', () => {
+    if (appData.settings?.theme === 'system') applyTheme();
+});
 
 multiListToggle.addEventListener('change', () => {
     appData.settings.multiListEnabled = multiListToggle.checked;
